@@ -1,0 +1,57 @@
+=========================================
+Method 1: Using Gnome Desktop with tigerVNC server
+=========================================
+sudo apt update
+sudo apt install ubuntu-gnome-desktop
+sudo apt install tigervnc-standalone-server tigervnc-common tigervnc-xorg-extension tigervnc-viewer
+vncserver
+vncserver -kill :1
+sudo nano  ~/.vnc/xstartup
+ 
+        #!/bin/sh
+        xrdb $HOME/.Xresources
+        vncconfig -iconic &
+        dbus-launch --exit-with-session gnome-session &
+ 
+sudo chmod +x ~/.vnc/xstartup
+vncserver :1 -localhost no -depth 32
+netstat -tlnp
+=========================================
+Method 2: Using Gnome Desktop with xrdp
+=========================================
+sudo apt install xrdp
+sudo adduser elasticourse
+=========================================
+Method 3: Using XFCE4 Desktop with tigerVNC server
+=========================================
+sudo apt install xfce4 xfce4-goodies
+sudo nano  ~/.vnc/xstartup
+ 
+        #!/bin/bash
+        xrdb $HOME/.Xresources
+        startxfce4 &
+=========================================
+Optional: Create system server so that VNCserver starts automatically on ubuntu reboot
+=========================================
+sudo nano /etc/systemd/system/vncserver@.service
+ 
+        [Unit]
+        Description=Remote desktop service (VNC)
+        After=syslog.target network.target
+ 
+        [Service]
+        Type=simple
+        User=ubuntu
+        PAMName=login
+        PIDFile=/home/%u/.vnc/%H%i.pid
+        ExecStartPre=/usr/bin/vncserver -kill :%i > /dev/null 2>&1 || :
+        ExecStart=/usr/bin/vncserver :%i -localhost no
+        ExecStop=/usr/bin/vncserver -kill :%i
+ 
+        [Install]
+        WantedBy=multi-user.target
+ 
+sudo systemctl daemon-reload
+sudo systemctl start vncserver@1
+sudo systemctl enable vncserver@1
+sudo systemctl status vncserver@1
